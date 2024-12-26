@@ -1,0 +1,60 @@
+server:
+  port: 9080
+  servlet:
+    context-path: /backend-api/v1.0
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb-${random.value} ;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        proc:
+          param_null_passing : true
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+
+contact:
+  httpConnectionMaxPerRoute: 50
+  httpConnectionMaxSize: 50
+  httpConnectionTimeout: 500
+  httpReadTimeout: 2000
+  httpRequestCloseIdleConnectionsInSecond: 5
+  httpRequestEndpoint: http://localhost:8686/user/{userId}
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        recordExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+          - org.springframework.web.client.ResourceAccessException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+          - com.hasim.genesis.api.exception.ApplicationDownstreamException
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      UserEmailAddress:
+        baseConfig: default
+      CreateUser:
+        baseConfig: default
+      FetchUsers:
+        baseConfig: default
+
